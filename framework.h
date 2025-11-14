@@ -29,6 +29,11 @@
 #include <afxcontrolbars.h>     // MFC의 리본 및 컨트롤 막대 지원
 
 
+// framework.h 파일 맨 아래에 추가
+
+#define WM_UPDATE_DATE_INFO  (WM_USER + 100)
+
+
 
 
 

@@ -364,6 +364,21 @@ void CCalendarAppView::OnLButtonDown(UINT nFlags, CPoint point)
 
         // TODO: 여기서 스케줄 상세 다이얼로그를 띄우면 된다.
         // 예시로 일단 메시지박스로 날짜를 확인해보자:
+
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // [추가된 부분] 다른 뷰(CDay)에게 데이터 전송하기
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+        // 1. 데이터 포장 (Pack)
+        // WPARAM에 연도, LPARAM에 월(Low)과 일(High)을 담습니다.
+        WPARAM wp = (WPARAM)m_nYear;
+        LPARAM lp = MAKELPARAM(m_nMonth, m_nSelDay);
+
+        // 2. 메인 프레임 산하의 모든 자식 창에게 메시지 방송
+        // (이렇게 하면 CDay도 이 메시지를 받게 됩니다)
+        AfxGetMainWnd()->SendMessageToDescendants(WM_UPDATE_DATE_INFO, wp, lp, TRUE, TRUE);
+
+
         CString msg;
         msg.Format(_T("%04d-%02d-%02d 날짜가 클릭되었습니다."),
             m_nYear, m_nMonth, m_nSelDay);
