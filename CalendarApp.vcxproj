@@ -188,6 +188,7 @@
     <ClInclude Include="CalendarAppView.h" />
     <ClInclude Include="CDay.h" />
     <ClInclude Include="ChildFrm.h" />
+    <ClInclude Include="CInputDlg.h" />
     <ClInclude Include="CTree.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="CalendarAppView.cpp" />
     <ClCompile Include="CDay.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
+    <ClCompile Include="CInputDlg.cpp" />
     <ClCompile Include="CTree.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="pch.cpp">

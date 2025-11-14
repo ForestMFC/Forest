@@ -13,6 +13,7 @@ protected:
 	int m_nYear;
 	int m_nMonth;
 	int m_nDay;
+	CString m_strSchedule;
 
 
 protected:
@@ -33,6 +34,8 @@ protected:
 
 	// ★ 메시지 처리 함수 선언
 	afx_msg LRESULT OnUpdateDateInfo(WPARAM wParam, LPARAM lParam);
+public:
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 };
 
 

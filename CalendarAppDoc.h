@@ -12,8 +12,18 @@ protected: // serialization에서만 만들어집니다.
 	CCalendarAppDoc() noexcept;
 	DECLARE_DYNCREATE(CCalendarAppDoc)
 
+// ★★★ [추가] 일정 저장용 변수와 함수 선언 ★★★
+protected:
+	// Key: "20251114", Value: "오후 2시 미팅"
+	CMapStringToString m_mapSchedule;
+
 // 특성입니다.
 public:
+	// 일정을 저장하는 함수
+	void SetSchedule(int y, int m, int d, CString strContent);
+
+	// 일정을 가져오는 함수
+	CString GetSchedule(int y, int m, int d);
 
 // 작업입니다.
 public:

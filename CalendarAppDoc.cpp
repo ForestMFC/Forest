@@ -136,3 +136,30 @@ void CCalendarAppDoc::Dump(CDumpContext& dc) const
 
 
 // CCalendarAppDoc 명령
+
+// 일정 저장
+void CCalendarAppDoc::SetSchedule(int y, int m, int d, CString strContent)
+{
+	CString strKey;
+	strKey.Format(_T("%04d%02d%02d"), y, m, d); // 예: "20251114"
+
+	m_mapSchedule.SetAt(strKey, strContent);
+
+	// 데이터가 변경되었음을 알림 (나중에 파일 저장시 필요)
+	SetModifiedFlag(TRUE);
+}
+
+// 일정 가져오기
+CString CCalendarAppDoc::GetSchedule(int y, int m, int d)
+{
+	CString strKey;
+	strKey.Format(_T("%04d%02d%02d"), y, m, d);
+
+	CString strContent;
+	// 해당 키가 있으면 값을 가져옴 (없으면 빈 문자열)
+	if (m_mapSchedule.Lookup(strKey, strContent))
+	{
+		return strContent;
+	}
+	return _T(""); // 일정이 없으면 빈 칸 반환
+}
