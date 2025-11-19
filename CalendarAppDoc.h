@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include "CScheduleItem.h" // ★ 1단계에서 만든 헤더
+#include <afxtempl.h>     // CArray, CMap 사용
+
+
 
 class CCalendarAppDoc : public CDocument
 {
@@ -14,16 +18,20 @@ protected: // serialization에서만 만들어집니다.
 
 // ★★★ [추가] 일정 저장용 변수와 함수 선언 ★★★
 protected:
-	// Key: "20251114", Value: "오후 2시 미팅"
-	CMapStringToString m_mapSchedule;
+	// Key: 날짜문자열, Value: 배열의 주소(포인터)
+	// 3번째, 4번째 인자가 포인터(*)로 바뀐 것을 꼭 확인하세요!
+	CMap<CString, LPCTSTR, CScheduleItemArray*, CScheduleItemArray*> m_mapSchedules;
+
 
 // 특성입니다.
 public:
-	// 일정을 저장하는 함수
-	void SetSchedule(int y, int m, int d, CString strContent);
+	// ★ [수정] 함수들의 인자 타입을 CScheduleItemArray로 변경
+	void SetSchedules(int y, int m, int d, const CScheduleItemArray& arrContent);
+	bool GetSchedules(int y, int m, int d, CScheduleItemArray& outArrContent);
 
-	// 일정을 가져오는 함수
-	CString GetSchedule(int y, int m, int d);
+
+	// ★★★ [추가] 메모리 해제 함수 (필수!) ★★★
+	virtual void DeleteContents();
 
 // 작업입니다.
 public:

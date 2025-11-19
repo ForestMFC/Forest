@@ -1,5 +1,6 @@
 ﻿#pragma once
-
+// ★★★ [중요] 이 헤더를 포함해야 CScheduleItemArray를 알 수 있습니다.
+#include "CScheduleItem.h"
 
 // CDay 보기
 
@@ -7,13 +8,6 @@ class CDay : public CView
 {
 	DECLARE_DYNCREATE(CDay)
 
-
-	// 멤버 변수 추가 (날짜 저장용)
-protected:
-	int m_nYear;
-	int m_nMonth;
-	int m_nDay;
-	CString m_strSchedule;
 
 
 protected:
@@ -32,7 +26,18 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
 
-	// ★ 메시지 처리 함수 선언
+// ★★★ [멤버 변수]
+protected:
+	int m_nYear;
+	int m_nMonth;
+	int m_nDay;
+
+	// [수정] 기존 CString m_strSchedule 삭제하고 배열로 변경
+	CScheduleItemArray m_arrSchedule;
+
+
+// ★★★ [메시지 처리 함수]
+protected:
 	afx_msg LRESULT OnUpdateDateInfo(WPARAM wParam, LPARAM lParam);
 public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);

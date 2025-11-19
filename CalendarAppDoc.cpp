@@ -14,6 +14,8 @@
 
 #include <propkey.h>
 
+#include "CScheduleItem.h" // ★ 1단계에서 만든 헤더
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -137,29 +139,74 @@ void CCalendarAppDoc::Dump(CDumpContext& dc) const
 
 // CCalendarAppDoc 명령
 
-// 일정 저장
-void CCalendarAppDoc::SetSchedule(int y, int m, int d, CString strContent)
-{
-	CString strKey;
-	strKey.Format(_T("%04d%02d%02d"), y, m, d); // 예: "20251114"
-
-	m_mapSchedule.SetAt(strKey, strContent);
-
-	// 데이터가 변경되었음을 알림 (나중에 파일 저장시 필요)
-	SetModifiedFlag(TRUE);
-}
-
-// 일정 가져오기
-CString CCalendarAppDoc::GetSchedule(int y, int m, int d)
+// ★★★ [수정] 일정 저장 함수 (포인터 사용)
+void CCalendarAppDoc::SetSchedules(int y, int m, int d, const CScheduleItemArray& arrContent)
 {
 	CString strKey;
 	strKey.Format(_T("%04d%02d%02d"), y, m, d);
 
-	CString strContent;
-	// 해당 키가 있으면 값을 가져옴 (없으면 빈 문자열)
-	if (m_mapSchedule.Lookup(strKey, strContent))
+	CScheduleItemArray* pArray = NULL;
+
+	// 1. 이미 해당 날짜에 데이터가 있는지 확인
+	if (m_mapSchedules.Lookup(strKey, pArray))
 	{
-		return strContent;
+		// 있으면 기존 내용만 비웁니다. (메모리는 재사용)
+		pArray->RemoveAll();
 	}
-	return _T(""); // 일정이 없으면 빈 칸 반환
+	else
+	{
+		// 없으면 새로 메모리 할당(new) 하고 맵에 등록
+		pArray = new CScheduleItemArray;
+		m_mapSchedules.SetAt(strKey, pArray);
+	}
+
+	// 2. 데이터 복사 (Append 이용)
+	pArray->Append(arrContent);
+
+	SetModifiedFlag(TRUE);
+}
+
+// ★★★ [수정] 일정 가져오기 함수 (포인터 사용)
+bool CCalendarAppDoc::GetSchedules(int y, int m, int d, CScheduleItemArray& outArrContent)
+{
+	// 일단 출력 변수 비우기
+	outArrContent.RemoveAll();
+
+	CString strKey;
+	strKey.Format(_T("%04d%02d%02d"), y, m, d);
+
+	CScheduleItemArray* pArray = NULL;
+
+	// 맵에서 포인터를 찾음
+	if (m_mapSchedules.Lookup(strKey, pArray))
+	{
+		// 포인터가 가리키는 내용을 복사해서 내보냄
+		outArrContent.Append(*pArray);
+		return true;
+	}
+
+	return false;
+}
+
+
+// ★★★ [추가] 메모리 해제 함수
+// 프로그램 종료 시나 '새 파일' 시 메모리 누수 방지
+void CCalendarAppDoc::DeleteContents()
+{
+	// 맵에 들어있는 모든 배열 포인터를 delete 해줘야 합니다.
+	CString strKey;
+	CScheduleItemArray* pArray = NULL;
+
+	POSITION pos = m_mapSchedules.GetStartPosition();
+	while (pos != NULL)
+	{
+		m_mapSchedules.GetNextAssoc(pos, strKey, pArray);
+		if (pArray != NULL)
+		{
+			delete pArray; // ★ 중요: 힙 메모리 해제
+		}
+	}
+	m_mapSchedules.RemoveAll(); // 맵 비우기
+
+	CDocument::DeleteContents();
 }

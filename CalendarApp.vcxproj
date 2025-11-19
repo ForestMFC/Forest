@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -189,6 +189,8 @@
     <ClInclude Include="CDay.h" />
     <ClInclude Include="ChildFrm.h" />
     <ClInclude Include="CInputDlg.h" />
+    <ClInclude Include="CScheduleDlg.h" />
+    <ClInclude Include="CScheduleItem.h" />
     <ClInclude Include="CTree.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
@@ -203,6 +205,8 @@
     <ClCompile Include="CDay.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
     <ClCompile Include="CInputDlg.cpp" />
+    <ClCompile Include="CScheduleDlg.cpp" />
+    <ClCompile Include="CScheduleItem.cpp" />
     <ClCompile Include="CTree.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="pch.cpp">
@@ -211,6 +215,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ScheduleItem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CalendarApp.rc" />
