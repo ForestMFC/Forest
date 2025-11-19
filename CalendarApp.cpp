@@ -155,25 +155,36 @@ BOOL CCalendarAppApp::InitInstance()
 	// 2. 프로그램이 아이콘으로 실행되었을 경우 (새 파일 모드)
 	if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileNew)
 	{
-		// --- 1. 3개의 창을 생성하고 각 창의 CChildFrame 포인터를 얻어옵니다. ---
+		// 1. ★핵심★: 문서는 딱 하나(pDoc)만 만듭니다.
+		// 첫 번째 템플릿(달력)을 이용해 문서를 만들고 엽니다.
+		CDocument* pDoc = pDocTemplate1->OpenDocumentFile(NULL);
+		if (!pDoc) return FALSE;
 
-		CDocument* pDoc1 = pDocTemplate1->OpenDocumentFile(NULL); // 역할1 (오른쪽)
-		POSITION pos1 = pDoc1->GetFirstViewPosition();
-		CView* pView1 = pDoc1->GetNextView(pos1);
+		// 첫 번째 창(달력)의 프레임 포인터 찾기
+		POSITION pos = pDoc->GetFirstViewPosition();
+		CView* pView1 = pDoc->GetNextView(pos);
 		CChildFrame* pChild1 = (CChildFrame*)pView1->GetParentFrame();
 
-		CDocument* pDoc2 = pDocTemplate2->OpenDocumentFile(NULL); // 역할2 (왼쪽 위)
-		POSITION pos2 = pDoc2->GetFirstViewPosition();
-		CView* pView2 = pDoc2->GetNextView(pos2);
-		CChildFrame* pChild2 = (CChildFrame*)pView2->GetParentFrame();
 
-		CDocument* pDoc3 = pDocTemplate3->OpenDocumentFile(NULL); // 역할3 (왼쪽 아래)
-		POSITION pos3 = pDoc3->GetFirstViewPosition();
-		CView* pView3 = pDoc3->GetNextView(pos3);
-		CChildFrame* pChild3 = (CChildFrame*)pView3->GetParentFrame();
+		// 2. 두 번째 창(CDay) 만들기
+		// ★핵심★: 새로 OpenDocumentFile을 하지 않고, 위에서 만든 'pDoc'을 공유합니다.
+		CChildFrame* pChild2 = (CChildFrame*)pDocTemplate2->CreateNewFrame(pDoc, NULL);
+		if (pChild2)
+		{
+			pDocTemplate2->InitialUpdateFrame(pChild2, pDoc); // 창 초기화 및 표시
+		}
 
-		// --- 2. 메인 프레임의 MDI 클라이언트 영역 크기를 얻어옵니다. ---
-		// (툴바, 상태바를 제외한 실제 MDI 자식 창이 표시되는 회색 영역)
+
+		// 3. 세 번째 창(CTree) 만들기
+		// ★핵심★: 역시 같은 'pDoc'을 공유합니다.
+		CChildFrame* pChild3 = (CChildFrame*)pDocTemplate3->CreateNewFrame(pDoc, NULL);
+		if (pChild3)
+		{
+			pDocTemplate3->InitialUpdateFrame(pChild3, pDoc);
+		}
+
+
+		// --- 4. 레이아웃 배치 (기존 코드의 위치 계산 로직 적용) ---
 		CRect rectMDIClient;
 		CWnd* pMDIClient = CWnd::FromHandle(pMainFrame->m_hWndMDIClient);
 		pMDIClient->GetClientRect(&rectMDIClient);
@@ -181,29 +192,27 @@ BOOL CCalendarAppApp::InitInstance()
 		int width = rectMDIClient.Width();
 		int height = rectMDIClient.Height();
 
-		// --- 3. 이미지 레이아웃에 맞춰 3개의 창 위치/크기를 수동 계산합니다. ---
-		// (비율은 6:4, 5:5 등으로 원하시는 대로 조절하세요)
-
-		// 창 1 (오른쪽 40% 영역, 전체 높이)
+		// 창 1 (달력): 왼쪽 아래 (높이 비율 살짝 조정 0.4 + 0.6 = 1.0이 되도록 수정 추천)
+		// 기존: Top 0.4, Height 0.7 (넘침) -> 수정: Height 0.6으로 맞춤
 		int nLeft1 = 0;
-		int nTop1 = height * 0.4; // 50% 지점에서 시작
-		int nWidth1 = width * 0.6; // 60% 너비
-		int nHeight1 = height * 0.7; // 50% 높이
-		pChild1->MoveWindow(nLeft1, nTop1, nWidth1, nHeight1);
+		int nTop1 = height * 0.4;
+		int nWidth1 = width * 0.6;
+		int nHeight1 = height * 0.6;
+		if (pChild1) pChild1->MoveWindow(nLeft1, nTop1, nWidth1, nHeight1);
 
-		// 창 2 (왼쪽 60% 영역, 위쪽 50% 높이)
+		// 창 2 (CDay): 왼쪽 위
 		int nLeft2 = 0;
 		int nTop2 = 0;
-		int nWidth2 = width * 0.6; // 60% 너비
-		int nHeight2 = height * 0.4; // 50% 높이
-		pChild2->MoveWindow(nLeft2, nTop2, nWidth2, nHeight2);
+		int nWidth2 = width * 0.6;
+		int nHeight2 = height * 0.4;
+		if (pChild2) pChild2->MoveWindow(nLeft2, nTop2, nWidth2, nHeight2);
 
-		// 창 3 (왼쪽 60% 영역, 아래쪽 50% 높이)
-		int nLeft3 = width * 0.6; // 60% 지점에서 시작
+		// 창 3 (CTree): 오른쪽 전체
+		int nLeft3 = width * 0.6;
 		int nTop3 = 0;
-		int nWidth3 = width * 0.4; // 40% 너비
+		int nWidth3 = width * 0.4;
 		int nHeight3 = height;
-		pChild3->MoveWindow(nLeft3, nTop3, nWidth3, nHeight3);
+		if (pChild3) pChild3->MoveWindow(nLeft3, nTop3, nWidth3, nHeight3);
 	}
 	// 3. 사용자가 특정 파일을 더블클릭해서 연 경우
 	else

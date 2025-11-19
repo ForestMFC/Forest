@@ -183,6 +183,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CAddDlg.h" />
     <ClInclude Include="CalendarApp.h" />
     <ClInclude Include="CalendarAppDoc.h" />
     <ClInclude Include="CalendarAppView.h" />
@@ -196,6 +197,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CAddDlg.cpp" />
     <ClCompile Include="CalendarApp.cpp" />
     <ClCompile Include="CalendarAppDoc.cpp" />
     <ClCompile Include="CalendarAppView.cpp" />

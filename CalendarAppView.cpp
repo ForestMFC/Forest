@@ -358,16 +358,22 @@ void CCalendarAppView::OnLButtonDown(UINT nFlags, CPoint point)
     int day = 0;
     if (HitTestDayCell(point, day))
     {
-        m_nSelDay = day;   // 선택된 날짜 갱신
-
+        // 1. 내 뷰(달력)의 선택 날짜 갱신 및 다시 그리기 (노란색 표시용)
+        m_nSelDay = day;
         Invalidate();
 
-        // TODO: 여기서 스케줄 상세 다이얼로그를 띄우면 된다.
-        // 예시로 일단 메시지박스로 날짜를 확인해보자:
-        CString msg;
-        msg.Format(_T("%04d-%02d-%02d 날짜가 클릭되었습니다."),
-            m_nYear, m_nMonth, m_nSelDay);
-        AfxMessageBox(msg);
+        // Document에 날짜를 보내고, 다른 뷰(CDay) 업데이트 요청
+        CCalendarAppDoc* pDoc = GetDocument();
+        if (pDoc != nullptr)
+        {
+            // 데이터 저장
+            pDoc->m_selYear = m_nYear;
+            pDoc->m_selMonth = m_nMonth;
+            pDoc->m_selDay = m_nSelDay;
+
+            // "나(this)를 제외한 모든 뷰는 화면을 갱신해라"
+            pDoc->UpdateAllViews(this);
+        }
 
         return;
     }

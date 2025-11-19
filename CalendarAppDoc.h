@@ -1,10 +1,26 @@
 ﻿
 // CalendarAppDoc.h: CCalendarAppDoc 클래스의 인터페이스
 //
-
-
 #pragma once
+#include <vector>
 
+//일정(Schedule) 정보를 담을 구조체 정의
+struct ScheduleInfo {
+	int year, month, day;   // 날짜
+	int startHour;          // 시작 시간 (0~23)
+	int endHour;            // 종료 시간 (1~24)
+	CString content;        // 할 일 내용
+	bool isCompleted;       // 완료 여부
+
+	// 생성자 (초기화)
+	ScheduleInfo(int y, int m, int d, int sh, int eh, CString txt)
+	{
+		year = y; month = m; day = d;
+		startHour = sh; endHour = eh;
+		content = txt;
+		isCompleted = false;
+	}
+};
 
 class CCalendarAppDoc : public CDocument
 {
@@ -14,6 +30,11 @@ protected: // serialization에서만 만들어집니다.
 
 // 특성입니다.
 public:
+	int m_selYear;
+	int m_selMonth;
+	int m_selDay;
+
+	std::vector<ScheduleInfo> m_scheduleList;
 
 // 작업입니다.
 public:

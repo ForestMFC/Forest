@@ -21,6 +21,11 @@ public:
 #endif
 
 protected:
+	CRect m_rcAdd; // [+] 버튼
+	CRect m_rcDel; // [-] 버튼
+
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+
 	DECLARE_MESSAGE_MAP()
 };
 
