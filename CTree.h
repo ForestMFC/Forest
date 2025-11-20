@@ -30,4 +30,6 @@ protected:
 #endif
 
 	DECLARE_MESSAGE_MAP()
+	// ★ [추가] 신호 받을 함수
+	afx_msg LRESULT OnAddOneTree(WPARAM wParam, LPARAM lParam);
 };

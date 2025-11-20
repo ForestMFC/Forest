@@ -227,6 +227,13 @@ void CDay::OnLButtonDown(UINT nFlags, CPoint point)
                 case IDYES: // [완료 처리]
                     sch.isCompleted = true;
                     AfxMessageBox(_T("일정이 완료 처리되었습니다."));
+
+                    // ★★★ [수정] 아주 단순하게 신호만 보냅니다 ★★★
+                    // 나무 하나 추가!" (인자값 필요 없음)
+                    AfxGetMainWnd()->SendMessageToDescendants(WM_ADD_ONE_TREE, 0, 0, TRUE, TRUE);
+
+
+
                     break;
 
                     //여기서 나무데이터 확인
