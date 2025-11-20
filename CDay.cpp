@@ -43,7 +43,9 @@ void CDay::OnDraw(CDC* pDC)
     pDC->FillSolidRect(&rcClient, RGB(255, 255, 255));
 
     if (pDoc->m_selDay == 0) {
-        pDC->TextOut(10, 10, _T("달력에서 날짜를 선택하세요."));
+        CString msg = _T("달력에서 날짜를 선택하세요.");
+        CRect rcText = rcClient;
+		pDC->DrawText(msg, &rcText, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
         return;
     }
 
@@ -61,7 +63,7 @@ void CDay::OnDraw(CDC* pDC)
     pDC->SelectObject(pOldFont);
 
     // =========================================================
-    // 2) 버튼 그리기 ([-] 버튼 삭제됨, [+] 버튼만 남김)
+    // 2) 버튼 그리기  [+] 버튼만 남김
     // =========================================================
     int btnSize = 30;
     int topMargin = 10;
@@ -226,6 +228,8 @@ void CDay::OnLButtonDown(UINT nFlags, CPoint point)
                     sch.isCompleted = true;
                     AfxMessageBox(_T("일정이 완료 처리되었습니다."));
                     break;
+
+                    //여기서 나무데이터 확인
 
                 case IDNO:  // [삭제]
                     // 벡터에서 해당 항목 삭제 (삭제 후 바로 리턴하여 인덱스 오류 방지)
