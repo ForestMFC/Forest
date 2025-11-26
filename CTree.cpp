@@ -9,7 +9,7 @@ IMPLEMENT_DYNCREATE(CTree, CView)
 
 CTree::CTree()
 {
-    m_nTreeCount = 5; // 테스트용. 실행하면 5그루 나옴.
+    m_nTreeCount = 6; // 테스트용. 실행하면 5그루 나옴.
     m_bImageLoaded = FALSE;
 }
 
@@ -18,6 +18,7 @@ CTree::~CTree()
 }
 
 BEGIN_MESSAGE_MAP(CTree, CView)
+    ON_MESSAGE(WM_ADD_ONE_TREE, &CTree::OnAddOneTree)
 END_MESSAGE_MAP()
 
 // --------------------  추가되는 부분 --------------------
@@ -38,6 +39,17 @@ void CTree::OnInitialUpdate()
         m_bImageLoaded = FALSE;
         MessageBox(L"tree.png 를 불러오지 못했습니다.\n경로를 확인하세요.", L"이미지 로드 실패", MB_ICONERROR);
     }
+}
+
+LRESULT CTree::OnAddOneTree(WPARAM wParam, LPARAM lParam)
+{
+    // 1. 그냥 변수 1 증가
+    m_nTreeCount++;
+
+    // 2. 화면 다시 그리기
+    Invalidate();
+
+    return 0;
 }
 
 

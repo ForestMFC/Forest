@@ -30,4 +30,7 @@ protected:
 #endif
 
 	DECLARE_MESSAGE_MAP()
+
+	afx_msg LRESULT OnAddOneTree(WPARAM wParam, LPARAM lParam);
+
 };
