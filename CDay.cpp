@@ -14,11 +14,22 @@ IMPLEMENT_DYNCREATE(CDay, CView)
 
 CDay::CDay()
 {
-
+    m_pDlgManager = nullptr;
 }
 
 CDay::~CDay()
 {
+}
+
+void CDay::OnDestroy()
+{
+    CView::OnDestroy();
+    if (m_pDlgManager)
+    {
+        m_pDlgManager->DestroyWindow(); // 창 닫기
+        delete m_pDlgManager;           // 메모리 해제
+        m_pDlgManager = nullptr;
+    }
 }
 
 BEGIN_MESSAGE_MAP(CDay, CView)
@@ -29,6 +40,7 @@ END_MESSAGE_MAP()
 // CDay 그리기
 
 // CDay.cpp
+
 
 void CDay::OnDraw(CDC* pDC)
 {
@@ -129,116 +141,28 @@ void CDay::OnDraw(CDC* pDC)
 void CDay::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CCalendarAppDoc* pDoc = (CCalendarAppDoc*)GetDocument();
-
-    // 0. 날짜 선택 안됐으면 리턴
     if (pDoc->m_selDay == 0) {
-        AfxMessageBox(_T("먼저 달력에서 날짜를 선택해주세요."));
-        return;
+        AfxMessageBox(_T("날짜를 먼저 선택하세요.")); return;
     }
 
-    // 1. 좌표 계산 (OnDraw와 동일하게)
-    CRect rcClient;
-    GetClientRect(&rcClient);
-
-    int headerHeight = 60;
-    int timeStartX = 20;
-    int timeEndX = rcClient.right - 20;
-    int timeTotalW = timeEndX - timeStartX;
-    if (timeTotalW < 100) timeTotalW = 100;
-
-    double pxPerHour = (double)timeTotalW / 24.0;
-    int barTop = headerHeight + 100;
-    int barBottom = barTop + 80;
-
-    // 타임라인 영역 밖을 클릭했으면 무시 (선택사항)
-    // if (point.y < barTop || point.y > barBottom) return;
-
-
-    // ---------------------------------------------------------
-    // 2. 클릭한 곳에 '기존 일정'이 있는지 확인 (수정 모드)
-    // ---------------------------------------------------------
-    for (size_t i = 0; i < pDoc->m_scheduleList.size(); ++i)
+    // 1. 대화상자 생성
+    if (m_pDlgManager == nullptr)
     {
-        ScheduleInfo& sch = pDoc->m_scheduleList[i];
-
-        if (sch.year == pDoc->m_selYear &&
-            sch.month == pDoc->m_selMonth &&
-            sch.day == pDoc->m_selDay)
-        {
-            // 좌표 계산
-            int x1 = timeStartX + (int)(sch.startHour * pxPerHour);
-            int x2 = timeStartX + (int)(sch.endHour * pxPerHour);
-            if (x2 - x1 < 20) x2 = x1 + 20;
-            CRect rcSch(x1, barTop, x2, barBottom);
-
-            // ★ 일정을 클릭했다! -> 수정/관리 창 열기
-            if (rcSch.PtInRect(point))
-            {
-                CAddDlg dlg;
-                // 기존 데이터 넣어주기 (TRUE = 수정 모드)
-                dlg.SetData(sch.content, sch.startHour, sch.endHour, TRUE);
-
-                if (dlg.DoModal() == IDOK)
-                {
-                    // 1) 삭제 요청 처리
-                    if (dlg.m_bDeleteReq) {
-                        pDoc->m_scheduleList.erase(pDoc->m_scheduleList.begin() + i);
-                    }
-                    // 2) 완료 요청 처리
-                    else if (dlg.m_bCompleteReq) {
-                        sch.isCompleted = true;
-                        // 나무 키우기 메시지 전송
-                        AfxGetMainWnd()->SendMessageToDescendants(WM_ADD_ONE_TREE, 0, 0, TRUE, TRUE);
-                    }
-                    // 3) 내용 수정 (시간, 내용 업데이트)
-                    else {
-                        sch.content = dlg.m_strContent;
-                        sch.startHour = dlg.m_nStart;
-                        sch.endHour = dlg.m_nEnd;
-                    }
-                    pDoc->UpdateAllViews(NULL);
-                }
-                return; // 처리 끝났으니 리턴
-            }
-        }
+        m_pDlgManager = new CAddDlg();
+        m_pDlgManager->Create(IDD_DIALOG_ADD, this);
     }
 
+    // 2. ★ 핵심: 그냥 "오늘 날짜 정보 가져가서 리스트 띄워라"고 명령
+    m_pDlgManager->SetDay(pDoc);
 
-    // ---------------------------------------------------------
-    // 3. 일정이 없는 빈 공간 클릭 -> '새 일정 추가' 모드
-    // ---------------------------------------------------------
+    // 3. (선택사항) 만약 타임라인의 노란 박스를 정확히 클릭했다면,
+    //    리스트에서도 그 항목을 자동으로 선택해주면 금상첨화겠죠?
+    //    -> 이 기능은 나중에 추가해도 됩니다. 일단은 리스트가 뜨는 게 중요합니다.
 
-    // 클릭한 X좌표를 시간으로 역계산 (대략 몇 시를 눌렀는지)
-    int clickHour = 0;
-    if (point.x > timeStartX) {
-        clickHour = (int)((point.x - timeStartX) / pxPerHour);
-    }
-    if (clickHour < 0) clickHour = 0;
-    if (clickHour > 23) clickHour = 23;
+    m_pDlgManager->ShowWindow(SW_SHOW);
 
-    // 대화상자 띄우기 (FALSE = 추가 모드)
-    CAddDlg dlg;
-    dlg.SetData(_T(""), clickHour, 0, FALSE);
-
-    if (dlg.DoModal() == IDOK)
-    {
-        // 유효성 검사
-        if (dlg.m_nStart < 0 || dlg.m_nStart > 23 || dlg.m_nEnd <= dlg.m_nStart) {
-            AfxMessageBox(_T("시간 설정 오류")); return;
-        }
-        if (dlg.m_strContent.IsEmpty()) {
-            AfxMessageBox(_T("내용을 입력하세요")); return;
-        }
-
-        // 새 일정 추가
-        ScheduleInfo newSch(pDoc->m_selYear, pDoc->m_selMonth, pDoc->m_selDay,
-            dlg.m_nStart, dlg.m_nEnd, dlg.m_strContent);
-
-        pDoc->m_scheduleList.push_back(newSch);
-        pDoc->UpdateAllViews(NULL);
-    }
+    CView::OnLButtonDown(nFlags, point);
 }
-
 
 // CDay 진단
 

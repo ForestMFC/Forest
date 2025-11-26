@@ -195,22 +195,22 @@ BOOL CCalendarAppApp::InitInstance()
 		// 창 1 (달력): 왼쪽 아래 (높이 비율 살짝 조정 0.4 + 0.6 = 1.0이 되도록 수정 추천)
 		// 기존: Top 0.4, Height 0.7 (넘침) -> 수정: Height 0.6으로 맞춤
 		int nLeft1 = 0;
-		int nTop1 = height * 0.4;
-		int nWidth1 = width * 0.6;
-		int nHeight1 = height * 0.6;
+		int nTop1 = (int)(height * 0.4);
+		int nWidth1 = (int)(width * 0.6);
+		int nHeight1 = (int)(height * 0.6); 
 		if (pChild1) pChild1->MoveWindow(nLeft1, nTop1, nWidth1, nHeight1);
 
-		// 창 2 (CDay): 왼쪽 위
+		// 창 2 (CDay)
 		int nLeft2 = 0;
 		int nTop2 = 0;
-		int nWidth2 = width * 0.6;
-		int nHeight2 = height * 0.4;
+		int nWidth2 = (int)(width * 0.6);
+		int nHeight2 = (int)(height * 0.4);
 		if (pChild2) pChild2->MoveWindow(nLeft2, nTop2, nWidth2, nHeight2);
 
-		// 창 3 (CTree): 오른쪽 전체
-		int nLeft3 = width * 0.6;
+		// 창 3 (CTree)
+		int nLeft3 = (int)(width * 0.6);
 		int nTop3 = 0;
-		int nWidth3 = width * 0.4;
+		int nWidth3 = (int)(width * 0.4);
 		int nHeight3 = height;
 		if (pChild3) pChild3->MoveWindow(nLeft3, nTop3, nWidth3, nHeight3);
 	}

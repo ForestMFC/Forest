@@ -6,18 +6,19 @@
 
 //일정(Schedule) 정보를 담을 구조체 정의
 struct ScheduleInfo {
-	int year, month, day;   // 날짜
-	int startHour;          // 시작 시간 (0~23)
-	int endHour;            // 종료 시간 (1~24)
-	CString content;        // 할 일 내용
-	bool isCompleted;       // 완료 여부
+	int year, month, day;
+	int startHour, endHour;
+	CString content;
+	CString memo;       // ★ [추가] 상세 메모
+	bool isCompleted;
 
-	// 생성자 (초기화)
-	ScheduleInfo(int y, int m, int d, int sh, int eh, CString txt)
+	// 생성자 업데이트
+	ScheduleInfo(int y, int m, int d, int sh, int eh, CString txt, CString mem = _T(""))
 	{
 		year = y; month = m; day = d;
 		startHour = sh; endHour = eh;
 		content = txt;
+		memo = mem;     // 메모 저장
 		isCompleted = false;
 	}
 };

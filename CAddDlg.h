@@ -1,40 +1,52 @@
-﻿#pragma once
+﻿// CAddDlg.h
+#pragma once
 #include "afxdialogex.h"
+
+struct ScheduleInfo;
+class CCalendarAppDoc;
 
 class CAddDlg : public CDialogEx
 {
-	DECLARE_DYNAMIC(CAddDlg)
+    DECLARE_DYNAMIC(CAddDlg)
 
 public:
-	CAddDlg(CWnd* pParent = nullptr);
-	virtual ~CAddDlg();
+    CAddDlg(CWnd* pParent = nullptr);
+    virtual ~CAddDlg();
 
-	// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_DIALOG_ADD };
+    enum { IDD = IDD_DIALOG_ADD };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);
+    virtual void DoDataExchange(CDataExchange* pDX);
+    virtual void OnCancel(); // 숨기기 기능
 
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 
 public:
-	// 입력 컨트롤 변수들
-	CString m_strContent;
-	int m_nStart;
-	int m_nEnd;
+    // UI 컨트롤 변수
+    CListBox m_listSchedule; // ★ [추가] 일정 목록 리스트
 
-	// ★ [추가] 상태 관리용 변수
-	BOOL m_bEditMode;     // TRUE면 수정 모드, FALSE면 새 추가
-	BOOL m_bDeleteReq;    // 삭제 요청 여부
-	BOOL m_bCompleteReq;  // 완료 요청 여부
+    // 값 변수
+    CString m_strContent;
+    CString m_strMemo;
+    int m_nStart;
+    int m_nEnd;
 
-	// 초기화 함수 (뷰에서 호출)
-	void SetData(CString content, int start, int end, BOOL bEdit);
+    // 데이터 포인터
+    CCalendarAppDoc* m_pDoc;
+    ScheduleInfo* m_pCurrentSch; // 현재 선택된(수정 중인) 일정. NULL이면 새 일정.
 
-	// 버튼 이벤트 핸들러
-	afx_msg void OnBnClickedButtonDelete();
-	afx_msg void OnBnClickedButtonComplete();
-	virtual BOOL OnInitDialog(); // 초기화 때 버튼 숨기기/보이기
+    // 기능 함수
+    void SetDay(CCalendarAppDoc* pDoc); // ★ 날짜만 받으면 리스트를 쫙 뿌려주는 함수
+    void RefreshList();                 // 리스트 새로고침
+    void ClearInputFields();            // 입력칸 비우기
+
+    // 이벤트 핸들러
+    afx_msg void OnLbnSelchangeListSchedules(); // ★ 리스트 클릭 시
+    afx_msg void OnBnClickedButtonNew();        // [새로 만들기] 버튼
+    afx_msg void OnBnClickedButtonSave();       // [저장]
+    afx_msg void OnBnClickedButtonDelete();     // [삭제]
+    afx_msg void OnBnClickedButtonComplete();   // [완료]
+    virtual BOOL OnInitDialog();
 };
