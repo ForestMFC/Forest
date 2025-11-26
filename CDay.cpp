@@ -50,7 +50,7 @@ void CDay::OnDraw(CDC* pDC)
     }
 
     // =========================================================
-    // 1) 날짜 제목
+    // 1. 날짜 제목
     // =========================================================
     CString strDate;
     strDate.Format(_T("%04d년 %02d월 %02d일"), pDoc->m_selYear, pDoc->m_selMonth, pDoc->m_selDay);
@@ -62,25 +62,9 @@ void CDay::OnDraw(CDC* pDC)
     pDC->TextOut(20, 10, strDate);
     pDC->SelectObject(pOldFont);
 
-    // =========================================================
-    // 2) 버튼 그리기  [+] 버튼만 남김
-    // =========================================================
-    int btnSize = 30;
-    int topMargin = 10;
-    int rightMargin = 20;
-
-    // [+] 버튼을 오른쪽 끝으로 배치
-    m_rcAdd = CRect(rcClient.right - rightMargin - btnSize, topMargin,
-        rcClient.right - rightMargin, topMargin + btnSize);
-
-    // 기존의 [-] 버튼(m_rcDel) 관련 코드는 삭제했습니다.
-
-    pDC->Rectangle(m_rcAdd);
-    pDC->DrawText(_T("+"), m_rcAdd, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
 
     // =========================================================
-    // 3. 가로 타임라인 그리기 (이전 설정 유지)
+    // 2. 가로 타임라인 그리기 (이전 설정 유지)
     // =========================================================
     int headerHeight = 60;
     int timeStartX = 20;
@@ -110,7 +94,7 @@ void CDay::OnDraw(CDC* pDC)
     }
 
     // =========================================================
-    // 4. 일정 데이터 그리기 (가로)
+    // 3. 일정 데이터 그리기 (가로)
     // =========================================================
     CBrush brushSch(RGB(255, 255, 0));
     CBrush* pOldBrush = pDC->SelectObject(&brushSch);
@@ -146,42 +130,13 @@ void CDay::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CCalendarAppDoc* pDoc = (CCalendarAppDoc*)GetDocument();
 
-    // ---------------------------------------------------------
-    // 1. [+] 버튼 클릭: 대화상자 띄우기 (기존 코드 유지)
-    // ---------------------------------------------------------
-    if (m_rcAdd.PtInRect(point))
-    {
-        if (pDoc->m_selDay == 0) {
-            AfxMessageBox(_T("먼저 달력에서 날짜를 선택해주세요."));
-            return;
-        }
-
-        CAddDlg dlg;
-        if (dlg.DoModal() == IDOK)
-        {
-            if (dlg.m_nStart < 0 || dlg.m_nStart > 23 || dlg.m_nEnd <= dlg.m_nStart || dlg.m_nEnd > 24) {
-                AfxMessageBox(_T("시간 설정이 올바르지 않습니다."));
-                return;
-            }
-            if (dlg.m_strContent.IsEmpty()) {
-                AfxMessageBox(_T("일정 내용을 입력해주세요."));
-                return;
-            }
-
-            ScheduleInfo newSch(pDoc->m_selYear, pDoc->m_selMonth, pDoc->m_selDay,
-                dlg.m_nStart, dlg.m_nEnd, dlg.m_strContent);
-            pDoc->m_scheduleList.push_back(newSch);
-            pDoc->UpdateAllViews(NULL);
-        }
+    // 0. 날짜 선택 안됐으면 리턴
+    if (pDoc->m_selDay == 0) {
+        AfxMessageBox(_T("먼저 달력에서 날짜를 선택해주세요."));
         return;
     }
 
-    // ([-] 버튼 클릭 로직은 삭제했습니다)
-
-
-    // ---------------------------------------------------------
-    // 2. 일정 박스 클릭 감지 및 처리 (완료/삭제/취소)
-    // ---------------------------------------------------------
+    // 1. 좌표 계산 (OnDraw와 동일하게)
     CRect rcClient;
     GetClientRect(&rcClient);
 
@@ -190,12 +145,18 @@ void CDay::OnLButtonDown(UINT nFlags, CPoint point)
     int timeEndX = rcClient.right - 20;
     int timeTotalW = timeEndX - timeStartX;
     if (timeTotalW < 100) timeTotalW = 100;
-    double pxPerHour = (double)timeTotalW / 24.0;
 
-    int barTop = headerHeight + 100; // 위치 맞춤
+    double pxPerHour = (double)timeTotalW / 24.0;
+    int barTop = headerHeight + 100;
     int barBottom = barTop + 80;
 
-    // 반복문을 돌면서 어떤 박스를 눌렀는지 확인
+    // 타임라인 영역 밖을 클릭했으면 무시 (선택사항)
+    // if (point.y < barTop || point.y > barBottom) return;
+
+
+    // ---------------------------------------------------------
+    // 2. 클릭한 곳에 '기존 일정'이 있는지 확인 (수정 모드)
+    // ---------------------------------------------------------
     for (size_t i = 0; i < pDoc->m_scheduleList.size(); ++i)
     {
         ScheduleInfo& sch = pDoc->m_scheduleList[i];
@@ -204,56 +165,78 @@ void CDay::OnLButtonDown(UINT nFlags, CPoint point)
             sch.month == pDoc->m_selMonth &&
             sch.day == pDoc->m_selDay)
         {
+            // 좌표 계산
             int x1 = timeStartX + (int)(sch.startHour * pxPerHour);
             int x2 = timeStartX + (int)(sch.endHour * pxPerHour);
             if (x2 - x1 < 20) x2 = x1 + 20;
-
             CRect rcSch(x1, barTop, x2, barBottom);
 
-            // ★ 클릭된 일정을 찾았다!
+            // ★ 일정을 클릭했다! -> 수정/관리 창 열기
             if (rcSch.PtInRect(point))
             {
-                // 상세 내용 표시 문자열 생성
-                CString msg;
-                msg.Format(_T("[일정 상세 정보]\n\n내용: %s\n시간: %d시 ~ %d시\n상태: %s\n\n----------------------------\n이 일정을 어떻게 하시겠습니까?\n\n[예(Y)] -> 완료 처리\n[아니요(N)] -> 일정 삭제\n[취소(C)] -> 닫기"),
-                    sch.content, sch.startHour, sch.endHour,
-                    sch.isCompleted ? _T("완료됨") : _T("진행 중"));
+                CAddDlg dlg;
+                // 기존 데이터 넣어주기 (TRUE = 수정 모드)
+                dlg.SetData(sch.content, sch.startHour, sch.endHour, TRUE);
 
-                // 3가지 버튼이 있는 메시지 박스 띄우기 (Yes / No / Cancel)
-                int nResult = AfxMessageBox(msg, MB_YESNOCANCEL | MB_ICONQUESTION);
-
-                switch (nResult)
+                if (dlg.DoModal() == IDOK)
                 {
-                case IDYES: // [완료 처리]
-                    sch.isCompleted = true;
-                    AfxMessageBox(_T("일정이 완료 처리되었습니다."));
-
-                    AfxGetMainWnd()->SendMessageToDescendants(WM_ADD_ONE_TREE, 0, 0, TRUE, TRUE);
-
-
-                    break;
-
-                    //여기서 나무데이터 확인
-
-                case IDNO:  // [삭제]
-                    // 벡터에서 해당 항목 삭제 (삭제 후 바로 리턴하여 인덱스 오류 방지)
-                    pDoc->m_scheduleList.erase(pDoc->m_scheduleList.begin() + i);
-                    AfxMessageBox(_T("일정이 삭제되었습니다."));
-                    break;
-
-                case IDCANCEL: // [취소]
-                    // 아무것도 안 함
-                    return;
+                    // 1) 삭제 요청 처리
+                    if (dlg.m_bDeleteReq) {
+                        pDoc->m_scheduleList.erase(pDoc->m_scheduleList.begin() + i);
+                    }
+                    // 2) 완료 요청 처리
+                    else if (dlg.m_bCompleteReq) {
+                        sch.isCompleted = true;
+                        // 나무 키우기 메시지 전송
+                        AfxGetMainWnd()->SendMessageToDescendants(WM_ADD_ONE_TREE, 0, 0, TRUE, TRUE);
+                    }
+                    // 3) 내용 수정 (시간, 내용 업데이트)
+                    else {
+                        sch.content = dlg.m_strContent;
+                        sch.startHour = dlg.m_nStart;
+                        sch.endHour = dlg.m_nEnd;
+                    }
+                    pDoc->UpdateAllViews(NULL);
                 }
-
-                // 데이터가 바뀌었으니 화면 갱신
-                pDoc->UpdateAllViews(NULL);
-                return; // 처리를 마쳤으니 함수 종료
+                return; // 처리 끝났으니 리턴
             }
         }
     }
 
-    CView::OnLButtonDown(nFlags, point);
+
+    // ---------------------------------------------------------
+    // 3. 일정이 없는 빈 공간 클릭 -> '새 일정 추가' 모드
+    // ---------------------------------------------------------
+
+    // 클릭한 X좌표를 시간으로 역계산 (대략 몇 시를 눌렀는지)
+    int clickHour = 0;
+    if (point.x > timeStartX) {
+        clickHour = (int)((point.x - timeStartX) / pxPerHour);
+    }
+    if (clickHour < 0) clickHour = 0;
+    if (clickHour > 23) clickHour = 23;
+
+    // 대화상자 띄우기 (FALSE = 추가 모드)
+    CAddDlg dlg;
+    dlg.SetData(_T(""), clickHour, 0, FALSE);
+
+    if (dlg.DoModal() == IDOK)
+    {
+        // 유효성 검사
+        if (dlg.m_nStart < 0 || dlg.m_nStart > 23 || dlg.m_nEnd <= dlg.m_nStart) {
+            AfxMessageBox(_T("시간 설정 오류")); return;
+        }
+        if (dlg.m_strContent.IsEmpty()) {
+            AfxMessageBox(_T("내용을 입력하세요")); return;
+        }
+
+        // 새 일정 추가
+        ScheduleInfo newSch(pDoc->m_selYear, pDoc->m_selMonth, pDoc->m_selDay,
+            dlg.m_nStart, dlg.m_nEnd, dlg.m_strContent);
+
+        pDoc->m_scheduleList.push_back(newSch);
+        pDoc->UpdateAllViews(NULL);
+    }
 }
 
 
