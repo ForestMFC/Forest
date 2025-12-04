@@ -37,6 +37,7 @@ BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
 	if( !CMDIChildWnd::PreCreateWindow(cs) )
 		return FALSE;
 
+	cs.style &= ~WS_SYSMENU;
 	return TRUE;
 }
 
