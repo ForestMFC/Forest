@@ -20,6 +20,7 @@ protected:
 protected:
 	int m_nLevel; // 현재 단계 (0 ~ 4)
 	int m_nExp;   // 현재 경험치 (0 ~ 100)
+	int m_nTreeCnt; // 심은 나무 개수
 
 	CImage m_imgBack;    // 배경 이미지 (ground.png)
 	CImage m_imgTree[6]; // 단계별 나무 이미지 (level0 ~ level5)

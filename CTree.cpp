@@ -12,6 +12,7 @@ CTree::CTree()
     m_nLevel = 0; // 레벨 0 (씨앗)부터 시작
     m_nExp = 0;   // 경험치 0
     m_bImagesLoaded = FALSE;
+	m_nTreeCnt = 0;
 }
 
 CTree::~CTree()
@@ -71,7 +72,8 @@ LRESULT CTree::OnAddOneTree(WPARAM wParam, LPARAM lParam)
         {
             m_nLevel = 0;
             // (선택사항) 한 바퀴 돌았다는 메시지를 띄울 수도 있음
-            // AfxMessageBox(L"축하합니다! 나무를 수확하고 새로운 씨앗을 심습니다.");
+            AfxMessageBox(L"축하합니다! 나무를 수확하고 새로운 씨앗을 심습니다.");
+			m_nTreeCnt++;
         }
     }
 
@@ -120,7 +122,7 @@ void CTree::OnDraw(CDC* pDC)
 	int y = (rcClient.Height() - imgH) / 2;
 
 	// (선택사항) 씨앗(level0)은 작으니까 좀 더 아래로 내리고 싶다면?
-	// if (m_nLevel == 0) y += 50; 
+	// if (m_nLevel == 0) y += 50; 
 
 	m_imgTree[idx].Draw(pDC->m_hDC, x, y, imgW, imgH);
 
@@ -129,8 +131,8 @@ void CTree::OnDraw(CDC* pDC)
 	// 3. 경험치 바 & 텍스트 그리기
 	// =========================================================
 	// 위치: 나무 아래쪽
-	int barW = 200;
-	int barH = 15;
+	int barW = 400;
+	int barH = 60; // 바 높이 약간 증가
 	int barX = (rcClient.Width() - barW) / 2;
 	int barY = y + imgH + 20; // 나무 이미지 20px 아래
 
@@ -151,24 +153,70 @@ void CTree::OnDraw(CDC* pDC)
 	}
 
 	// (3) 텍스트 정보 (레벨 & 퍼센트)
+	// 폰트 설정 (Level/EXP 표시 - 18pt)
+	CFont fontExp;
+	fontExp.CreateFont(
+		32,                         // 폰트 높이 (18pt)
+		0, 0, 0,
+		FW_BOLD,                    // 굵게
+		FALSE, FALSE, 0,
+		DEFAULT_CHARSET,
+		OUT_DEFAULT_PRECIS,
+		CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY,
+		DEFAULT_PITCH | FF_SWISS,
+		L"맑은 고딕"
+	);
+
+	// 원래 폰트를 저장하고, 새로운 폰트 선택
+	CFont* pOldFont = pDC->SelectObject(&fontExp);
+
 	// 글자 배경을 투명하게 해서 배경 그림이 보이게 함
 	pDC->SetBkMode(TRANSPARENT);
-	pDC->SetTextColor(RGB(0, 0, 0)); // 검은 글씨 (잘 안 보이면 흰색으로 변경)
+	pDC->SetTextColor(RGB(0, 0, 0)); // 검은 글씨
 
 	CString strInfo;
-	strInfo.Format(L"Lv.%d  (EXP: %d%%)", m_nLevel, m_nExp);
+	strInfo.Format(L"Lv.%d  (EXP: %d%%)", m_nLevel, m_nExp);
 
-	// 바 위에 글씨 쓰기
+	// 바 위에 글씨 쓰기 (레벨/경험치)
 	pDC->DrawText(strInfo, rcBar, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+
+	// =========================================================
+	// 4. 수확한 나무 그루수 표시 (폰트 크기 증가)
+	// =========================================================
+
+	// 폰트 설정 (수확 개수 표시 - 28pt)
+	CFont fontHarvest;
+	fontHarvest.CreateFont(
+		60,                         // 폰트 높이 (28pt)
+		0, 0, 0,
+		FW_HEAVY,                   // 매우 굵게
+		FALSE, FALSE, 0,
+		DEFAULT_CHARSET,
+		OUT_DEFAULT_PRECIS,
+		CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY,
+		DEFAULT_PITCH | FF_SWISS,
+		L"맑은 고딕"
+	);
+	pDC->SelectObject(&fontHarvest); // 수확 개수 폰트로 변경
+
+	pDC->SetBkMode(TRANSPARENT); // 배경 투명
+	pDC->SetTextColor(RGB(0, 0, 0)); // 흰색 글씨로 변경 (배경과 대비되도록)
+
+	CString strHarvest;
+	strHarvest.Format(L"🌳 수확한 나무: %d그루", m_nTreeCnt);
+
+	// 화면 상단 중앙에 출력
+	CRect rcTop(0, 10, rcClient.Width(), 100); // 영역 높이 증가 (폰트가 커졌으므로)
+	pDC->DrawText(strHarvest, rcTop, DT_CENTER | DT_SINGLELINE);
+
+	// 폰트 원상 복구 (가장 중요!)
+	pDC->SelectObject(pOldFont);
+
 }
 
-
-//// 외부에서 나무 개수 바꿀 때 호출할 함수
-//void CTree::SetTreeCount(int count)
-//{
-//    m_nTreeCount = count;
-//    Invalidate(); // 다시 그리기
-//}
 
 #ifdef _DEBUG
 void CTree::AssertValid() const
