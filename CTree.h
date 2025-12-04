@@ -1,6 +1,5 @@
 ﻿#pragma once
-
-#include <atlimage.h>
+#include <atlimage.h> // 이미지 처리를 위해 필수
 
 class CTree : public CView
 {
@@ -11,26 +10,27 @@ protected:
 	virtual ~CTree();
 
 public:
-	int   m_nTreeCount;
-	void SetTreeCount(int count);
+	virtual void OnDraw(CDC* pDC);
+	virtual void OnInitialUpdate(); // 이미지 로드
 
 protected:
-	CImage m_imgTree;
-	BOOL   m_bImageLoaded;
-
-protected:
-	virtual void OnInitialUpdate() override;
-	virtual void OnDraw(CDC* pDC) override;
-
-#ifdef _DEBUG
-	virtual void AssertValid() const override;
-#ifndef _WIN32_WCE
-	virtual void Dump(CDumpContext& dc) const override;
-#endif
-#endif
-
 	DECLARE_MESSAGE_MAP()
 
-	afx_msg LRESULT OnAddOneTree(WPARAM wParam, LPARAM lParam);
+	// ★★★ [변수] 상태 및 이미지 관리 ★★★
+protected:
+	int m_nLevel; // 현재 단계 (0 ~ 4)
+	int m_nExp;   // 현재 경험치 (0 ~ 100)
 
+	CImage m_imgBack;    // 배경 이미지 (ground.png)
+	CImage m_imgTree[6]; // 단계별 나무 이미지 (level0 ~ level5)
+	
+	BOOL m_bImagesLoaded; // 로드 성공 여부
+#ifdef _DEBUG
+	virtual void AssertValid() const;
+	virtual void Dump(CDumpContext& dc) const;
+#endif
+
+public:
+	// 메시지 수신 함수
+	afx_msg LRESULT OnAddOneTree(WPARAM wParam, LPARAM lParam);
 };
