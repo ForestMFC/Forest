@@ -114,8 +114,28 @@ void CTree::OnDraw(CDC* pDC)
 	int idx = m_nLevel;
 	if (idx < 0) idx = 0; if (idx > 5) idx = 5; // 안전장치
 
-	int imgW = m_imgTree[idx].GetWidth();
-	int imgH = m_imgTree[idx].GetHeight();
+	// 원본 이미지 크기를 가져옵니다.
+	int originalImgW = m_imgTree[idx].GetWidth();
+	int originalImgH = m_imgTree[idx].GetHeight();
+
+	// ★★★ 이미지 크기를 클라이언트 영역에 비례하여 조정 ★★★
+	// 뷰 너비의 40% 또는 뷰 높이의 60%를 목표 크기로 설정합니다.
+	double targetRatioW = 0.60; // 뷰 너비의 40%
+	double targetRatioH = 0.80; // 뷰 높이의 60%
+
+	int targetW = (int)(rcClient.Width() * targetRatioW);
+	int targetH = (int)(rcClient.Height() * targetRatioH);
+
+	// 원본 이미지의 비율을 유지하며 목표 크기에 맞도록 조정합니다.
+	double ratioW = (double)targetW / originalImgW;
+	double ratioH = (double)targetH / originalImgH;
+
+	// 가로/세로 중 작은 비율을 선택하여 이미지 비율을 유지하고 영역 안에 맞춥니다.
+	double scale = min(ratioW, ratioH);
+
+	int imgW = (int)(originalImgW * scale);
+	int imgH = (int)(originalImgH * scale);
+	// ★★★ 이미지 크기 조정 끝 ★★★
 
 	// 화면 중앙 하단 쪽에 배치 (좌표 계산)
 	int x = (rcClient.Width() - imgW) / 2;
@@ -127,11 +147,12 @@ void CTree::OnDraw(CDC* pDC)
 	// 상대적인 값으로 변경: 클라이언트 높이의 5% 정도 추가
 	if (m_nLevel == 0) y += rcClient.Height() / 20;
 
+	// Draw 함수에 조정된 크기(imgW, imgH)를 전달하여 이미지를 그립니다.
 	m_imgTree[idx].Draw(pDC->m_hDC, x, y, imgW, imgH);
 
 
 	// =========================================================
-	// 3. 경험치 바 & 텍스트 그리기 (상대적 값으로 변경)
+	// 3. 경험치 바 & 텍스트 그리기 (기존 상대적 값 유지)
 	// =========================================================
 	// 위치: 나무 아래쪽
 	int barW = (int)(rcClient.Width() * 0.7); // 클라이언트 너비의 70%
