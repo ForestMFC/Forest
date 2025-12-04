@@ -1,5 +1,4 @@
-﻿
-// CalendarAppView.cpp: CCalendarAppView 클래스의 구현
+﻿// CalendarAppView.cpp: CCalendarAppView 클래스의 구현
 //
 
 #include "pch.h"
@@ -23,10 +22,10 @@
 IMPLEMENT_DYNCREATE(CCalendarAppView, CView)
 
 BEGIN_MESSAGE_MAP(CCalendarAppView, CView)
-	// 표준 인쇄 명령입니다.
-	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
-	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
-	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
+    // 표준 인쇄 명령입니다.
+    ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
+    ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
+    ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
 
     ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
@@ -119,10 +118,16 @@ bool CCalendarAppView::HitTestDayCell(CPoint pt, int& outDay)
     CRect rcClient;
     GetClientRect(&rcClient);
 
+    // 상대적인 값 계산 (OnDraw와 동일하게)
+    int titleHeight = (int)(rcClient.Height() * 0.07); // 제목 높이 7%
+    int calTopOffset = (int)(rcClient.Height() * 0.08); // 제목 아래 8% 지점에서 달력 시작
+    int marginX = (int)(rcClient.Width() * 0.03);     // 좌우 여백 3%
+    int marginY = (int)(rcClient.Height() * 0.03);    // 하단 여백 3%
+
     // OnDraw와 동일한 달력 영역 계산
     CRect rcCal = rcClient;
-    rcCal.top += 50;             // 제목 아래로 50px
-    rcCal.DeflateRect(20, 0, 20, 20);
+    rcCal.top = calTopOffset;
+    rcCal.DeflateRect(marginX, 0, marginX, marginY);
 
     int calWidth = rcCal.Width();
     int calHeight = rcCal.Height();
@@ -159,10 +164,10 @@ bool CCalendarAppView::HitTestDayCell(CPoint pt, int& outDay)
 
 BOOL CCalendarAppView::PreCreateWindow(CREATESTRUCT& cs)
 {
-	// TODO: CREATESTRUCT cs를 수정하여 여기에서
-	//  Window 클래스 또는 스타일을 수정합니다.
+    // TODO: CREATESTRUCT cs를 수정하여 여기에서
+    //  Window 클래스 또는 스타일을 수정합니다.
 
-	return CView::PreCreateWindow(cs);
+    return CView::PreCreateWindow(cs);
 }
 
 // CCalendarAppView 그리기
@@ -176,19 +181,25 @@ void CCalendarAppView::OnDraw(CDC* pDC)
 
     CDC& dc = *pDC;
 
-    // ----- 1) 전체 영역 계산 -----
+    // ----- 1) 전체 영역 계산 (상대적 값으로 변경) -----
     CRect rcClient;
     GetClientRect(&rcClient);
 
+    // 상대적인 값 계산 (클라이언트 높이, 너비에 대한 비율)
+    int titleHeight = (int)(rcClient.Height() * 0.07); // 제목 높이 7%
+    int calTopOffset = (int)(rcClient.Height() * 0.08); // 제목 아래 8% 지점에서 달력 시작
+    int marginX = (int)(rcClient.Width() * 0.03);     // 좌우 여백 3%
+    int marginY = (int)(rcClient.Height() * 0.03);    // 하단 여백 3%
+
     // 제목(연/월) 영역
     CRect rcTitle = rcClient;
-    rcTitle.top = 10;
-    rcTitle.bottom = 40;
+    rcTitle.top = (int)(rcClient.Height() * 0.01);
+    rcTitle.bottom = rcTitle.top + titleHeight;
 
     // 달력(요일+날짜) 영역
     CRect rcCal = rcClient;
-    rcCal.top += 50;             // 제목 아래로 50px 내려서 시작
-    rcCal.DeflateRect(20, 0, 20, 20);  // 좌우 여백 20
+    rcCal.top = calTopOffset;
+    rcCal.DeflateRect(marginX, 0, marginX, marginY);
 
     int calWidth = rcCal.Width();
     int calHeight = rcCal.Height();
@@ -204,24 +215,24 @@ void CCalendarAppView::OnDraw(CDC* pDC)
     dc.SetTextColor(RGB(0, 0, 0));
     dc.DrawText(strTitle, rcTitle, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
-    // ----- 2-1) 좌우 화살표 영역 계산 -----
-    int arrowWidth = 20;
-    int arrowHeight = 20;
+    // ----- 2-1) 좌우 화살표 영역 계산 (상대적 값으로 변경) -----
+    int arrowWidth = (int)(rcClient.Width() * 0.03);
+    int arrowHeight = titleHeight / 2;
 
     // "<" 왼쪽 화살표: 제목 왼쪽에
     m_rcPrev = CRect(
-        rcTitle.left + 10,
-        rcTitle.top,
-        rcTitle.left + 10 + arrowWidth,
-        rcTitle.top + arrowHeight
+        rcTitle.left + marginX / 2, // 10 대신 비율 여백의 절반
+        rcTitle.top + (titleHeight - arrowHeight) / 2, // 제목 중앙에 배치
+        rcTitle.left + marginX / 2 + arrowWidth,
+        rcTitle.top + (titleHeight - arrowHeight) / 2 + arrowHeight
     );
 
     // ">" 오른쪽 화살표: 제목 오른쪽에
     m_rcNext = CRect(
-        rcTitle.right - 10 - arrowWidth,
-        rcTitle.top,
-        rcTitle.right - 10,
-        rcTitle.top + arrowHeight
+        rcTitle.right - marginX / 2 - arrowWidth, // 10 대신 비율 여백의 절반
+        rcTitle.top + (titleHeight - arrowHeight) / 2, // 제목 중앙에 배치
+        rcTitle.right - marginX / 2,
+        rcTitle.top + (titleHeight - arrowHeight) / 2 + arrowHeight
     );
 
     // 화살표 텍스트 그리기
@@ -302,18 +313,18 @@ void CCalendarAppView::OnDraw(CDC* pDC)
 
 BOOL CCalendarAppView::OnPreparePrinting(CPrintInfo* pInfo)
 {
-	// 기본적인 준비
-	return DoPreparePrinting(pInfo);
+    // 기본적인 준비
+    return DoPreparePrinting(pInfo);
 }
 
 void CCalendarAppView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: 인쇄하기 전에 추가 초기화 작업을 추가합니다.
+    // TODO: 인쇄하기 전에 추가 초기화 작업을 추가합니다.
 }
 
 void CCalendarAppView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
-	// TODO: 인쇄 후 정리 작업을 추가합니다.
+    // TODO: 인쇄 후 정리 작업을 추가합니다.
 }
 
 void CCalendarAppView::OnLButtonDown(UINT nFlags, CPoint point)
@@ -387,18 +398,18 @@ void CCalendarAppView::OnLButtonDown(UINT nFlags, CPoint point)
 #ifdef _DEBUG
 void CCalendarAppView::AssertValid() const
 {
-	CView::AssertValid();
+    CView::AssertValid();
 }
 
 void CCalendarAppView::Dump(CDumpContext& dc) const
 {
-	CView::Dump(dc);
+    CView::Dump(dc);
 }
 
 CCalendarAppDoc* CCalendarAppView::GetDocument() const // 디버그되지 않은 버전은 인라인으로 지정됩니다.
 {
-	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CCalendarAppDoc)));
-	return (CCalendarAppDoc*)m_pDocument;
+    ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CCalendarAppDoc)));
+    return (CCalendarAppDoc*)m_pDocument;
 }
 #endif //_DEBUG
 
